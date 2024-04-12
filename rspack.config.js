@@ -4,7 +4,6 @@ const CopyPlugin = require("copy-webpack-plugin")
 const rspack = require("@rspack/core")
 
 const HTMLWebpackPlugin = require("html-webpack-plugin")
-const { RsdoctorRspackPlugin } = require("@rsdoctor/rspack-plugin")
 
 const isDev = process.env.NODE_ENV === "development"
 const pages = require("./config/pages.config-webpack.js") // 多页面配
@@ -17,7 +16,7 @@ let HTMLPlugins = []
 let Entries = {}
 // 生成多页面的集合
 for (const [pageName, page] of Object.entries(pages)) {
-  const htmlPlugin = new rspack.HtmlRspackPlugin({
+  const htmlPlugin = new HTMLWebpackPlugin({
     template: path.resolve(__dirname, `./public/index.html`),
     filename: `${pageName}.html`,
     title: page.title,
@@ -129,7 +128,6 @@ module.exports = {
   plugins: [
     ...HTMLPlugins,
     new VueLoaderPlugin(),
-    // new RsdoctorRspackPlugin()
   ],
 
   optimization: {

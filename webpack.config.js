@@ -7,9 +7,6 @@ const CopyPlugin = require("copy-webpack-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
 
- const { RsdoctorWebpackPlugin } = require("@rsdoctor/webpack-plugin")
-
-
 const isDev = process.env.NODE_ENV === "development"
 const pages = require("./config/pages.config-webpack.js") // 多页面配
 
@@ -165,7 +162,6 @@ module.exports = {
       filename: "static/css/[name].css",
       chunkFilename: "static/css/[id].css",
     }),
-    // new RsdoctorWebpackPlugin()
   ],
 
   optimization: {

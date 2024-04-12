@@ -6,7 +6,6 @@ import { pluginVue } from "@rsbuild/plugin-vue"
 import { pluginVueJsx } from "@rsbuild/plugin-vue-jsx"
 import { pluginPug } from "@rsbuild/plugin-pug"
 import { pluginRem } from "@rsbuild/plugin-rem"
-import { RsdoctorRspackPlugin } from "@rsdoctor/rspack-plugin"
 
 const { parsed } = loadEnv({
   prefixes: ["VUE_APP_"],
@@ -27,10 +26,6 @@ export default defineConfig({
   },
 
   tools: {
-    rspack(config) {
-      config.plugins?.push(new RsdoctorRspackPlugin())
-      return config
-    },
     htmlPlugin: (config, { entryName }) => {
       config.template = "./public/index.html"
       config.filename = `${entryName}.html`
