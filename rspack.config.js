@@ -1,14 +1,10 @@
 const path = require("path")
 const { VueLoaderPlugin } = require("vue-loader")
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const HTMLWebpackPlugin = require("html-webpack-plugin")
-const WebpackBar = require("webpackbar")
 const CopyPlugin = require("copy-webpack-plugin")
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-const TerserPlugin = require("terser-webpack-plugin")
+const rspack = require("@rspack/core")
 
- const { RsdoctorWebpackPlugin } = require("@rsdoctor/webpack-plugin")
-
+const HTMLWebpackPlugin = require("html-webpack-plugin")
+const { RsdoctorRspackPlugin } = require("@rsdoctor/rspack-plugin")
 
 const isDev = process.env.NODE_ENV === "development"
 const pages = require("./config/pages.config-webpack.js") // 多页面配
@@ -21,16 +17,11 @@ let HTMLPlugins = []
 let Entries = {}
 // 生成多页面的集合
 for (const [pageName, page] of Object.entries(pages)) {
-  const htmlPlugin = new HTMLWebpackPlugin({
+  const htmlPlugin = new rspack.HtmlRspackPlugin({
     template: path.resolve(__dirname, `./public/index.html`),
     filename: `${pageName}.html`,
     title: page.title,
     favicon: path.resolve(__dirname, `./public/favicon.ico`),
-    minify: {
-      removeAttributeQuotes: true,
-      removeComments: true,
-      removeEmptyAttributes: true,
-    },
     chunks: [pageName],
   })
   HTMLPlugins.push(htmlPlugin)
@@ -69,29 +60,25 @@ module.exports = {
       },
       {
         test: /\.vue/,
-        use: ["thread-loader", "vue-loader"],
+        use: [
+          {
+            loader: "vue-loader",
+            options: { experimentalInlineMatchResource: true },
+          },
+        ],
       },
       {
         test: /\.ts$/,
-        use: ["thread-loader", "babel-loader"],
+        use: ["builtin:swc-loader"],
       },
       {
         test: /\.css$/, //匹配所有的 css 文件
-        use: [
-          // 开发环境使用style-looader,打包模式抽离css
-          isDev ? "style-loader" : MiniCssExtractPlugin.loader,
-          "css-loader",
-          "postcss-loader",
-        ],
+        use: ["postcss-loader"],
       },
       {
         test: /\.scss$/,
         include: [path.resolve(__dirname, "./src")],
-        use: [
-          isDev ? "style-loader" : MiniCssExtractPlugin.loader,
-          "css-loader",
-          "postcss-loader",
-        ],
+        use: ["postcss-loader"],
       },
 
       {
@@ -136,36 +123,13 @@ module.exports = {
     extensions: [".vue", ".ts", ".js", ".json"],
     alias: {
       "@": path.resolve(__dirname, "./src/"),
+      "/src": path.resolve(__dirname, "./src/"),
     },
   },
   plugins: [
-    new WebpackBar({
-      color: "#f8d748",
-      basic: true,
-      profile: false,
-    }),
     ...HTMLPlugins,
     new VueLoaderPlugin(),
-
-    new CopyPlugin({
-      patterns: [
-        {
-          // 从public中复制文件
-          from: path.resolve(__dirname, "public"),
-          // 把复制的文件存放到dis里面
-          to: path.resolve(__dirname, "dist"),
-          // 忽略index.html 避免报错
-          filter: (source) => {
-            return !source.includes("index.html")
-          },
-        },
-      ],
-    }),
-    new MiniCssExtractPlugin({
-      filename: "static/css/[name].css",
-      chunkFilename: "static/css/[id].css",
-    }),
-    // new RsdoctorWebpackPlugin()
+    // new RsdoctorRspackPlugin()
   ],
 
   optimization: {
@@ -190,17 +154,5 @@ module.exports = {
         },
       },
     },
-    // minimize: true,
-    minimizer: [
-      new CssMinimizerPlugin(), // 压缩css
-      new TerserPlugin({
-        parallel: false,
-        terserOptions: {
-          compress: {
-            pure_funcs: ["console.log"], // 删除console.log
-          },
-        },
-      }),
-    ],
   },
 }
